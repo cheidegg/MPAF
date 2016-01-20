@@ -221,7 +221,6 @@ MPAFDisplay::readStatFile(string filename, int& icat) {
         yield  = atof( tks[n+1].c_str() );
         gen = atoi( tks[n+2].c_str() );
         eyield = atof( tks[n+3].c_str() );
-	
 	if(ext!="")
 	  extDss=anConf.findDSS( sname, ext );
 	
