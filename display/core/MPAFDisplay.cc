@@ -261,7 +261,10 @@ MPAFDisplay::readStatFile(string filename, int& icat) {
     //   //cout << it->first.redCateg << ", " << it->first.cname << ", " << it->first.sname << " (" << it->first.ext << ") " << endl;
 
     //   n++;
-    //
+    //   dss=anConf.findDSS( catMap[ic].first.sname );
+    //   for(unsigned int i=0;i<dss.size();i++) {
+    // 	string cr=dss[i]->getSample(catMap[ic].first.sname)->getCR();
+
     //   if(!it->first.useExt) continue;
     //
     //   CatId tmpId;
@@ -298,10 +301,16 @@ MPAFDisplay::readStatFile(string filename, int& icat) {
     // 	//adding it at the end should work 
     // 	catMap.push_back(p);
     //   }
-    //}
+    // }
+    
+    //   storeStatNums(dss[i], catMap[ic].second.yield, catMap[ic].second.eyield, 
+    // 		    catMap[ic].second.gen, icat,
+    // 		    catMap[ic].first.cname, catMap[ic].first.sname, catMap[ic].first.categ,
+    // 		    catMap[ic].first.uncTag, catMap[ic].first.upVar, catMap[ic].first.ext);
+      
+    // }
 
 
-   
     //now filling
     n=0;
 
@@ -309,20 +318,28 @@ MPAFDisplay::readStatFile(string filename, int& icat) {
       dss=anConf.findDSS( catMap[ic].first.sname, catMap[ic].first.ext );
       int icat=_au->getCategId( catMap[ic].first.categ );
       for(unsigned int i=0;i<dss.size();i++) {
-        string cr=dss[i]->getSample(catMap[ic].first.sname)->getCR();
-        if(catMap[ic].first.ext!=cr) continue;
-	    //if(catMap[ic].first.uncTag=="") //dss[i]->getName()=="T1tttt-1125-900")
-	      //cout<<dss[i]->getName()<<"  "<<catMap[ic].first.cname<<"  "<<catMap[ic].first.sname
-	      //    <<"  "<<icat<<"  "<<catMap[ic].first.categ<<"  "<<catMap[ic].first.uncTag<<" ---> "<<catMap[ic].second.yield<<endl;
-
-
-        storeStatNums(dss[i], catMap[ic].second.yield, catMap[ic].second.eyield, 
-        	      catMap[ic].second.gen, icat,
-        	      catMap[ic].first.cname, catMap[ic].first.sname, catMap[ic].first.categ,
-        	      catMap[ic].first.uncTag, catMap[ic].first.upVar, catMap[ic].first.ext);
+	string cr=dss[i]->getSample(catMap[ic].first.sname)->getCR();
+	if(cr=="") {
+	  storeStatNums(dss[i], catMap[ic].second.yield, catMap[ic].second.eyield, 
+			catMap[ic].second.gen, icat,
+			catMap[ic].first.cname, catMap[ic].first.sname, catMap[ic].first.categ,
+			catMap[ic].first.uncTag, catMap[ic].first.upVar, catMap[ic].first.ext);
+	}
+	else if(catMap[ic].first.ext==cr && cr!="") { // continue;
+	  storeStatNums(dss[i], catMap[ic].second.yield, catMap[ic].second.eyield, 
+			catMap[ic].second.gen, icat,
+			catMap[ic].first.cname, catMap[ic].first.sname, catMap[ic].first.categ,
+			catMap[ic].first.uncTag, catMap[ic].first.upVar, catMap[ic].first.ext);
+	  
+	  int icat2=_au->getCategId( catMap[ic].first.redCateg );
+	  storeStatNums(dss[i], catMap[ic].second.yield, catMap[ic].second.eyield, 
+			catMap[ic].second.gen, icat2,
+			catMap[ic].first.cname, catMap[ic].first.sname, catMap[ic].first.redCateg,
+			catMap[ic].first.uncTag, catMap[ic].first.upVar, "");	  
+	}
+	
+	n++;
       }
-    
-      n++;
     }
   }
   else {
