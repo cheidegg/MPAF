@@ -223,6 +223,8 @@ MPAFDisplay::readStatFile(string filename, int& icat) {
         gen = atoi( tks[n+2].c_str() );
         eyield = atof( tks[n+3].c_str() );
 	
+//cout << "reading " << yield << " in " << ext << " from " << categ << endl;
+
 	if(ext!="") {
 	  extDss=anConf.findDSS( sname, ext );
 	}	
@@ -236,6 +238,7 @@ MPAFDisplay::readStatFile(string filename, int& icat) {
 	id.ext = ext;
 	id.uncTag = uncTag;
 	id.upVar = upVar;
+    id.ext = ext;
 	
 	ValId vals;
 	vals.yield = yield;
@@ -251,14 +254,16 @@ MPAFDisplay::readStatFile(string filename, int& icat) {
 
     //Now overwritte when needed and fill the internal DB
     int n=0;
-    // vector<std::pair<CatId, ValId> >::const_iterator it;
-    // vector<std::pair<CatId, ValId> >::const_iterator itEnd=catMap.end();
-    // for(it=catMap.begin();it!=itEnd;++it) {
+    //vector<std::pair<CatId, ValId> >::const_iterator it;
+    //vector<std::pair<CatId, ValId> >::const_iterator itEnd=catMap.end();
+    //for(it=catMap.begin();it!=itEnd;++it) {
+
+    //   //cout << it->first.redCateg << ", " << it->first.cname << ", " << it->first.sname << " (" << it->first.ext << ") " << endl;
 
     //   n++;
-     
+    //
     //   if(!it->first.useExt) continue;
-      
+    //
     //   CatId tmpId;
     //   tmpId.categ = it->first.redCateg;
     //   tmpId.cname = it->first.cname;
@@ -268,9 +273,12 @@ MPAFDisplay::readStatFile(string filename, int& icat) {
     //   tmpId.ext = "";
     //   tmpId.uncTag = it->first.uncTag;
     //   tmpId.upVar = it->first.upVar;
-      
+
+    //  
     //   bool found=false;
     //   for(size_t ii=0;ii<catMap.size();ii++) {
+//fo//r(unsigned int dsssiii = 0; dsssiii < catMap[ii].first.targetDSS.size(); ++dsssiii) 
+//  //cout << "catID = " << catMap[ii].first.targetDSS[dsssiii]->getName() << "  .  " << catMap[ii].first.targetDSS[dsssiii] << endl;
     // 	if(catMap[ii].first.categ==tmpId.categ && 
     // 	   catMap[ii].first.cname==tmpId.cname && 
     // 	   catMap[ii].first.sname==tmpId.sname && 
@@ -278,38 +286,40 @@ MPAFDisplay::readStatFile(string filename, int& icat) {
     // 	   catMap[ii].first.redCateg==tmpId.redCateg && 
     // 	   catMap[ii].first.ext=="" && 
     // 	   catMap[ii].first.uncTag==tmpId.uncTag && 
-    // 	   catMap[ii].first.upVar==tmpId.upVar ) {
+    // 	   catMap[ii].first.upVar==tmpId.upVar){
     // 	  catMap[ii].second = it->second;
     // 	  found=true;
     // 	  break;
     // 	}
     //   }//end catMap
-      
+    //
     //   if(!found) {//category missing, need to add it
     // 	std::pair<CatId, ValId> p(tmpId, it->second);
     // 	//adding it at the end should work 
     // 	catMap.push_back(p);
     //   }
-    // }
-    
+    //}
+
+
    
     //now filling
     n=0;
 
     for(size_t ic=0;ic<catMap.size();++ic) {
-
-      dss=anConf.findDSS( catMap[ic].first.sname );
+      dss=anConf.findDSS( catMap[ic].first.sname, catMap[ic].first.ext );
       int icat=_au->getCategId( catMap[ic].first.categ );
       for(unsigned int i=0;i<dss.size();i++) {
-	string cr=dss[i]->getSample(catMap[ic].first.sname)->getCR();
-	if(catMap[ic].first.ext!=cr) continue;
-	// if(catMap[ic].first.uncTag=="") //dss[i]->getName()=="T1tttt-1125-900")
-	//   cout<<dss[i]->getName()<<"  "<<catMap[ic].first.cname<<"  "<<catMap[ic].first.sname
-	//       <<"  "<<icat<<"  "<<catMap[ic].first.categ<<"  "<<catMap[ic].first.uncTag<<" ---> "<<catMap[ic].second.yield<<endl;
-	storeStatNums(dss[i], catMap[ic].second.yield, catMap[ic].second.eyield, 
-		      catMap[ic].second.gen, icat,
-		      catMap[ic].first.cname, catMap[ic].first.sname, catMap[ic].first.categ,
-		      catMap[ic].first.uncTag, catMap[ic].first.upVar, catMap[ic].first.ext);
+        string cr=dss[i]->getSample(catMap[ic].first.sname)->getCR();
+        if(catMap[ic].first.ext!=cr) continue;
+	    //if(catMap[ic].first.uncTag=="") //dss[i]->getName()=="T1tttt-1125-900")
+	      //cout<<dss[i]->getName()<<"  "<<catMap[ic].first.cname<<"  "<<catMap[ic].first.sname
+	      //    <<"  "<<icat<<"  "<<catMap[ic].first.categ<<"  "<<catMap[ic].first.uncTag<<" ---> "<<catMap[ic].second.yield<<endl;
+
+
+        storeStatNums(dss[i], catMap[ic].second.yield, catMap[ic].second.eyield, 
+        	      catMap[ic].second.gen, icat,
+        	      catMap[ic].first.cname, catMap[ic].first.sname, catMap[ic].first.categ,
+        	      catMap[ic].first.uncTag, catMap[ic].first.upVar, catMap[ic].first.ext);
       }
     
       n++;
@@ -336,11 +346,11 @@ MPAFDisplay::storeStatNums(Dataset* ds, float yield, float eyield, int gen,
   }
 
 
-  //ds->reweightByLumi(sname, anConf.getLumi());
+  ds->reweightByLumi(sname, anConf.getLumi());
   float w =ds->getWeight(sname);
 
-  if(!ds->isPPcolDataset()) w *= anConf.getLumi(); 
-  if(ds->getSample(sname)->isDD()) w/=anConf.getLumi();
+  //if(!ds->isPPcolDataset()) w *= anConf.getLumi(); 
+  //if(ds->getSample(sname)->isDD()) w/=anConf.getLumi();
 
   yield *=w;
   eyield *=w;
@@ -353,6 +363,8 @@ MPAFDisplay::storeStatNums(Dataset* ds, float yield, float eyield, int gen,
   if(idx==-1) return;
   
   if(uncTag=="") {
+//cout << "storing yields " << yield << " for " << ds->getName() << " (" << ext << ")" << endl;
+//cout << "setting yield " << yield << " for " << cname << endl;
      _au->setEffFromStat(idx,cname,icat,yield,eyield,gen);
   }
   else {
@@ -1202,3 +1214,56 @@ MPAFDisplay::makeMultiDataCard(string sigName, vector<string> categs,
 
 
 }
+
+
+//bool
+//MPAFDisplay::checkDSS(CatId id1, CatId id2){
+//
+//  for(unsigned int i = 0; i < id1.targetDSS.size(); ++i)
+//    for(unsigned int j = 0; j < id2.targetDSS.size(); ++j)
+//      if(id1.targetDSS[i]->getName() != id2.targetDSS[j]->getName()) 
+//        return false;
+//
+//  return true;
+//
+//}    
+//
+//
+//bool
+//MPAFDisplay::checkDSS(CatId id1, sting dsName){
+//
+//  for(unsigned int i = 0; i < id1.targetDSS.size(); ++i)
+//      if(id1.targetDSS[i]->getName() == dsName) 
+//        return true;
+//
+//  return false;
+//
+//}    
+//
+//void
+//MPAFDisplay::copyRegion(std::pair<CatId, ValId> tmpId, vector<pair<CatId, ValId> > catMap, string dsName) {
+//
+//
+//  bool found=false;
+//  for(size_t ii=0;ii<catMap.size();ii++) {
+//    if(catMap[ii].first.categ==tmpId.categ && 
+//       catMap[ii].first.cname==tmpId.cname && 
+//       catMap[ii].first.sname==tmpId.sname && 
+//       catMap[ii].first.useExt==false && 
+//       catMap[ii].first.redCateg==tmpId.redCateg && 
+//       catMap[ii].first.ext=="" && 
+//       catMap[ii].first.uncTag==tmpId.uncTag && 
+//       catMap[ii].first.upVar==tmpId.upVar && 
+//       
+//       checkDSS(catMap[ii].first, dsName)){
+//      found=true;
+//      break;
+//    }
+//  }//end catMap
+//
+//  if(!found){
+//    
+//
+//  }
+//
+//}
